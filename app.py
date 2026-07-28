@@ -1,4 +1,4 @@
-# app.py — سيلورا جولد | صالة أسعار الذهب الحية
+# app.py — سيلورا جولد | هوية فاتحة متجاوبة RTL
 import streamlit as st
 import theme
 import gold_service as g
@@ -35,12 +35,12 @@ if price_24:
     st.markdown(f"""
     <div class="hero">
       <div class="hero-kicker">سعر الذهب العالمي · محوَّل فورياً للريال السعودي</div>
-      <div><span class="hero-price">{price_24:,.2f}</span><span class="hero-unit">ر.س / جرام 24</span></div>
-      <div class="hero-sub">آخر تحديث {upd or '—'} بتوقيت الرياض · المصدر gold-api.com</div>
+      <div><span class="hero-price">{price_24:,.2f}</span><span class="hero-unit">ريال / جرام 24</span></div>
+      <div class="hero-sub">آخر تحديث {upd or '—'} بتوقيت الرياض · المصدر <span class="src">gold-api.com</span></div>
     </div>
     """, unsafe_allow_html=True)
 else:
-    st.markdown('<div class="hero"><div class="hero-kicker">سيلورا جولد</div><div class="hero-price" style="font-size:3.2rem">لوحة الأسعار</div></div>', unsafe_allow_html=True)
+    st.markdown('<div class="hero"><div class="hero-kicker">سيلورا جولد</div><div class="hero-price">لوحة الأسعار</div></div>', unsafe_allow_html=True)
 
 # ===== لوحة الأعيرة =====
 st.markdown('<div class="sec-head"><span class="idx">01</span><h2>أسعار الجرام الآن</h2><span class="line"></span></div>', unsafe_allow_html=True)
@@ -53,12 +53,11 @@ if price_24:
         <span class="crown">الأكثر تداولاً</span>
         <div class="k-name">عيار 21</div>
         <div class="k-price">{p['عيار 21']:,.2f}</div>
-        <div class="k-cur">ريال سعودي / جرام</div>
+        <div class="k-cur">ريال / جرام</div>
       </div>
-      <div class="kcard" style="animation-delay:.12s"><div class="k-name">عيار 24</div><div class="k-price">{p['عيار 24']:,.2f}</div><div class="k-cur">ر.س / جرام</div></div>
-      <div class="kcard" style="animation-delay:.18s"><div class="k-name">عيار 22</div><div class="k-price">{p['عيار 22']:,.2f}</div><div class="k-cur">ر.س / جرام</div></div>
-      <div class="kcard" style="animation-delay:.24s"><div class="k-name">عيار 18</div><div class="k-price">{p['عيار 18']:,.2f}</div><div class="k-cur">ر.س / جرام</div></div>
-      <div class="kcard" style="animation-delay:.30s"><div class="k-name">الأونصة</div><div class="k-price">{price_24*31.1034768:,.0f}</div><div class="k-cur">ر.س / oz</div></div>
+      <div class="kcard" style="animation-delay:.10s"><div class="k-name">عيار 24</div><div class="k-price">{p['عيار 24']:,.2f}</div><div class="k-cur">ريال / جرام</div></div>
+      <div class="kcard" style="animation-delay:.15s"><div class="k-name">عيار 22</div><div class="k-price">{p['عيار 22']:,.2f}</div><div class="k-cur">ريال / جرام</div></div>
+      <div class="kcard" style="animation-delay:.20s"><div class="k-name">عيار 18</div><div class="k-price">{p['عيار 18']:,.2f}</div><div class="k-cur">ريال / جرام</div></div>
     </div>
     """, unsafe_allow_html=True)
 else:
@@ -109,7 +108,6 @@ if not price_24 and errors:
     <div class="diag">
       <h3>لوحة تشخيص الاتصال · gold-api.com</h3>
       {items}
-      <div class="d-row"><span>إجمالي المحاولات</span><span class="fail">{len(errors)}</span></div>
     </div>
     """, unsafe_allow_html=True)
 
