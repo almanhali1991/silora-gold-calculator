@@ -1,4 +1,4 @@
-# theme.py — لوحة بيضاء نقية | RTL قسري | متجاوبة | بلا شارة | نص الأونصة موسَّط
+# theme.py — لوحة بيضاء نقية | RTL قسري | متجاوبة | 24 بحدّ فحمي | بلا حركة أيقونة
 CSS = r"""
 @import url('https://fonts.googleapis.com/css2?family=Cairo:wght@500;600;700&family=Tajawal:wght@400;500;700&family=Plus+Jakarta+Sans:wght@500;600;700;800&display=swap');
 
@@ -8,7 +8,6 @@ CSS = r"""
 [data-testid="stDecoration"]{display:none !important;}
 footer, [data-testid="stFooter"]{visibility:hidden !important; display:none !important;}
 
-/* RTL قسري */
 html, body, .stApp, section.main,
 [data-testid="stAppViewContainer"], [data-testid="stMainBlockContainer"],
 [data-testid="stVerticalBlock"], [data-testid="stHorizontalBlock"],
@@ -29,7 +28,6 @@ html, body, .stApp, section.main,
 html, body, .stApp {background:var(--bg) !important; color:var(--ink);
   font-family:'Tajawal','Plus Jakarta Sans',sans-serif; -webkit-font-smoothing:antialiased; min-height:100vh;}
 .stApp{background:transparent !important;}
-/* خلفية بيضاء بنسيج نقطي باهت جداً + توهج علوي خفيف = الفرق البسيط عن الكروت */
 .stApp::before{content:""; position:fixed; inset:0; z-index:-2; background:var(--bg);}
 .stApp::after{content:""; position:fixed; inset:0; z-index:-1; pointer-events:none;
   background-image:
@@ -39,13 +37,11 @@ html, body, .stApp {background:var(--bg) !important; color:var(--ink);
   -webkit-mask-image:radial-gradient(135% 100% at 50% 0%, #000 30%, transparent 82%);
           mask-image:radial-gradient(135% 100% at 50% 0%, #000 30%, transparent 82%);}
 
-/* لا حاوية حاضنة */
 [data-testid="stMainBlockContainer"]{
   background:transparent !important; box-shadow:none !important; border:none !important;
   border-radius:0 !important; max-width:1080px !important;
   margin:30px auto !important; padding:10px 30px 48px !important;}
 
-/* الترويسة */
 .brand-row{display:flex; align-items:center; justify-content:space-between; gap:1rem;
   padding:.4rem 0 2.2rem 0; animation:fadeDown .6s ease both;}
 .brand-mark{display:flex; align-items:center; gap:.8rem;}
@@ -62,14 +58,12 @@ html, body, .stApp {background:var(--bg) !important; color:var(--ink);
 .live-badge.off .dot{background:#DC2626; animation:none;}
 .brand-time{font-size:.78rem; color:var(--muted); font-weight:600;}
 
-/* عناوين الأقسام */
 .sec-head{display:flex; align-items:center; gap:.75rem; margin:2.8rem 0 1.3rem 0;}
 .sec-head h2{font-family:'Cairo',sans-serif; font-weight:700; font-size:1.2rem; color:var(--ink); margin:0;}
 .sec-head .line{flex:1; height:1px; background:var(--line);}
 .sec-head .idx{font-family:'Plus Jakarta Sans',sans-serif; font-weight:700; color:var(--muted);
   background:var(--surface); border:1px solid var(--line); border-radius:8px; padding:3px 10px; font-size:.78rem; box-shadow:var(--shadow-sm);}
 
-/* بطاقة الأونصة — النص موسَّط */
 .hero-card{position:relative; border-radius:24px; padding:2.4rem 2rem; overflow:hidden; text-align:center;
   background:var(--surface); border:1px solid var(--line); box-shadow:var(--shadow); animation:fadeUp .7s ease both;}
 .hero-card::after{content:""; position:absolute; left:50%; top:-90px; transform:translateX(-50%);
@@ -87,16 +81,13 @@ html, body, .stApp {background:var(--bg) !important; color:var(--ink);
   font-size:.82rem; color:var(--muted); text-align:center;}
 .hero-meta b{color:var(--ink2); font-weight:700;}
 
-/* بطاقات الأعيرة */
 .stat-grid{display:grid; grid-template-columns:repeat(4,1fr); gap:16px;}
 .kcard{position:relative; border-radius:var(--r); padding:1.5rem 1.45rem 1.55rem; text-align:right;
   background:var(--surface); border:1px solid var(--line); box-shadow:var(--shadow-sm);
   transition:transform .3s cubic-bezier(.2,.8,.2,1), box-shadow .3s, border-color .3s; animation:fadeUp .6s ease both;}
 .kcard:hover{transform:translateY(-5px); box-shadow:var(--shadow); border-color:#DCDCDC;}
-.kcard:hover .ic{transform:scale(1.06) rotate(-3deg);}
 .ic{width:42px; height:42px; border-radius:13px; display:flex; align-items:center; justify-content:center;
-  background:var(--line2); color:var(--ink); margin-bottom:1rem;
-  transition:transform .3s cubic-bezier(.2,.8,.2,1);}
+  background:var(--line2); color:var(--ink); margin-bottom:1rem;}
 .ic svg{width:21px; height:21px;}
 .k-label{font-family:'Cairo',sans-serif; font-size:.98rem; color:var(--ink2); font-weight:700; margin-bottom:.55rem;}
 .k-value{font-family:'Plus Jakarta Sans',sans-serif; font-weight:800; font-size:1.6rem; color:var(--ink);
@@ -106,15 +97,14 @@ html, body, .stApp {background:var(--bg) !important; color:var(--ink);
 .k-usd{margin-top:.5rem; font-family:'Plus Jakarta Sans',sans-serif; font-weight:700; font-size:.94rem;
   color:var(--muted); font-variant-numeric:tabular-nums;}
 .k-usd .u{font-size:.7rem; color:var(--muted); margin-inline-start:.25rem;}
-/* البطاقة السوداء — بلا إطار، ظل ناعم موحّد */
-.kcard.feature{background:var(--ink); border:1px solid transparent; box-shadow:var(--shadow);}
-.kcard.feature:hover{border-color:transparent; box-shadow:0 18px 40px -18px rgba(24,24,27,.4);}
-.kcard.feature .ic{background:rgba(255,255,255,.14); color:#fff;}
-.kcard.feature .k-label{color:#D4D4D8;}
-.kcard.feature .k-value{color:#fff;}
-.kcard.feature .k-cur{background:rgba(255,255,255,.16); color:#fff;}
-.kcard.feature .k-usd{color:#A1A1AA;}
-.kcard.feature .k-usd .u{color:#71717A;}
+/* عيار 24: أبيض بحدّ فحمي وأيقونة فحمية مقلوبة (بلا سواد مملوء) */
+.kcard.feature{background:var(--surface); border:2px solid var(--ink); box-shadow:0 16px 38px -18px rgba(24,24,27,.30);}
+.kcard.feature:hover{border-color:var(--ink); box-shadow:0 20px 44px -18px rgba(24,24,27,.34);}
+.kcard.feature .ic{background:var(--ink); color:#fff;}
+.kcard.feature .k-label{color:var(--ink);}
+.kcard.feature .k-value{color:var(--ink);}
+.kcard.feature .k-cur{background:var(--line2); color:var(--ink2);}
+.kcard.feature .k-usd{color:var(--muted);}
 
 .diag{border:1px solid #FECACA; border-radius:var(--r); padding:1.2rem 1.3rem; margin-top:1rem; background:#FEF2F2; animation:reveal .5s ease both;}
 .diag h3{font-family:'Cairo',sans-serif; color:#B91C1C; margin:0 0 .5rem 0; font-size:1rem;}
@@ -127,8 +117,7 @@ html, body, .stApp {background:var(--bg) !important; color:var(--ink);
 @media (max-width:900px){ .stat-grid{grid-template-columns:repeat(2,1fr);} }
 @media (max-width:768px){
   [data-testid="stMainBlockContainer"]{padding:8px 16px 34px !important; max-width:100% !important;}
-  .brand-time{display:none;}
-  .hero-card{padding:2rem 1.3rem;}
+  .brand-time{display:none;} .hero-card{padding:2rem 1.3rem;}
 }
 @media (max-width:420px){
   .stat-grid{grid-template-columns:1fr 1fr; gap:12px;}
