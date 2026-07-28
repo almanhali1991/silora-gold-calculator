@@ -1,279 +1,286 @@
-# تطبيق حاسبة أسعار الذهب بواجهة Streamlit الرسومية
-# المطور: فريق سيلورا
-
 import streamlit as st
 import requests
+from datetime import datetime
+import pytz
 
-# ========================================
-# الثوابت العالمية (نفسها في main.py)
-# ========================================
-OUNCE_TO_GRAM = 31.1034768  # الأونصة Troy تساوي هذا العدد من الجرامات
-USD_TO_SAR = 3.75           # سعر صرف الدولار مقابل الريال السعودي
+# الثوابت
+OUNCE_TO_GRAM = 31.1034768
+USD_TO_SAR = 3.75
+CACHE_TTL = 60
 
-# ========================================
-# دالة جلب السعر العالمي للذهب
-# ========================================
-@st.cache_data(ttl=60)  # تخزين مؤقت لمدة 60 ثانية لتجنب طلب API متكرر
+# معاملات الأعيرة
+CARAT_FACTORS = {
+    24: 1.000,
+    22: 0.916,
+    21: 0.875,
+    18: 0.750
+}
+
+# دالة جلب سعر الذهب مع التخزين المؤقت
+@st.cache_data(ttl=CACHE_TTL)
 def get_gold_price():
-    """
-    تجلب السعر العالمي للذهب من API وتعيد:
-    - سعر جرام عيار 24 بالريال السعودي
-    - وقت آخر تحديث
-    """
-    url = "https://api.gold-api.com/price/XAU/USD"
-
     try:
-        response = requests.get(url, timeout=10)
-        response.raise_for_status()
+        response = requests.get("https://api.gold-api.com/price/XAU/USD")
         data = response.json()
-
-        # التحقق من وجود مفتاح price
-        if "price" not in data:
-            return None, None
-
-        # استخراج سعر الأونصة بالدولار
-        price_per_ounce_usd = data["price"]
-
-        # استخراج وقت التحديث
-        updated_at = data.get("updatedAtReadable", "غير متاح")
-
-        # المعادلة 1: سعر الجرام بالدولار
-        price_per_gram_usd = price_per_ounce_usd / OUNCE_TO_GRAM
-
-        # المعادلة 2: سعر جرام عيار 24 بالريال السعودي
-        price_per_gram_24_sar = price_per_gram_usd * USD_TO_SAR
-
-        return price_per_gram_24_sar, updated_at
-
-    except requests.exceptions.RequestException as e:
+        return data['price'], data['updatedAt']
+    except Exception as e:
         return None, None
 
-# ========================================
-# إعداد الصفحة
-# ========================================
-st.set_page_config(
-    page_title="حاسبة سيلورا جولد",
-    page_icon="💎",
-    layout="centered"
-)
+# دالة تحويل الوقت إلى توقيت الرياض
+def convert_to_riyadh_time(updated_at_str):
+    try:
+        utc_time = datetime.fromisoformat(updated_at_str.replace('Z', '+00:00'))
+        utc_zone = pytz.UTC
+        utc_time = utc_time.astimezone(utc_zone)
+        riyadh_tz = pytz.timezone('Asia/Riyadh')
+        riyadh_time = utc_time.astimezone(riyadh_tz)
+        hour = riyadh_time.strftime('%I').lstrip('0') or '12'
+        minute = riyadh_time.strftime('%M')
+        period = "ص" if riyadh_time.hour < 12 else "م"
+        return f"{hour}:{minute} {period}"
+    except:
+        return "غير متوفر"
 
-# ========================================
-# تحسين المظهر بهوية ذهبية فاخرة (CSS مخصص)
-# ========================================
+# تطبيق CSS للتصميم
 st.markdown("""
 <style>
-    /* خلفية متدرجة ذهبية فاتحة للصفحة */
-    .stApp {
-        background: linear-gradient(135deg, #FFF8E7 0%, #FFFBF0 50%, #FFF8DC 100%);
-    }
-    
-    /* عنوان رئيسي بلون ذهبي داكن وخط أنيق */
-    h1 {
-        color: #B8860B;
-        font-family: 'Georgia', serif;
-        font-weight: bold;
-        text-align: center;
-        text-shadow: 1px 1px 2px rgba(184, 134, 11, 0.3);
-    }
-    
-    /* حدود ذهبية خفيفة حول العناصر */
-    .gold-border {
-        border: 2px solid #DAA520;
-        border-radius: 10px;
-        padding: 15px;
-        background: linear-gradient(135deg, #FFFACD 0%, #FAFAD2 100%);
-        box-shadow: 0 4px 6px rgba(218, 165, 32, 0.2);
-    }
-    
-    /* تنسيق المقاييس */
-    [data-testid="stMetric"] {
-        background: linear-gradient(135deg, #FFFACD 0%, #FAFAD2 100%);
-        border-radius: 10px;
-        padding: 10px;
-        border: 1px solid #DAA520;
-    }
-    
-    /* تنسيق الأزرار */
-    .stButton > button {
-        background: linear-gradient(135deg, #B8860B 0%, #DAA520 100%);
-        color: white;
-        font-weight: bold;
-        border: none;
-        border-radius: 8px;
-        padding: 10px 20px;
-    }
-    .stButton > button:hover {
-        background: linear-gradient(135deg, #DAA520 0%, #FFD700 100%);
-    }
+@import url('https://fonts.googleapis.com/css2?family=Tajawal:wght@300;400;500;700&display=swap');
+
+* {
+    font-family: 'Tajawal', sans-serif !important;
+}
+
+body {
+    background-color: #FFFFFF;
+    color: #1A1A1A;
+}
+
+h1, h2, h3, h4, h5, h6 {
+    color: #1A1A1A !important;
+}
+
+.stApp {
+    background-color: #FFFFFF;
+}
+
+#MainMenu, footer, header, .viewerBadge_container__1QSdy {
+    visibility: hidden !important;
+    display: none !important;
+}
+
+hr {
+    border-color: #C9A227 !important;
+    margin: 1rem 0;
+}
+
+.price-card {
+    background-color: #FAFAFA;
+    border: 1px solid #E5E7EB;
+    border-radius: 8px;
+    padding: 1.2rem;
+    text-align: center;
+    box-shadow: 0 1px 3px rgba(0,0,0,0.05);
+    height: 100%;
+}
+
+.highlighted-card {
+    border: 2px solid #C9A227 !important;
+    position: relative;
+}
+
+.popular-badge {
+    position: absolute;
+    top: -10px;
+    left: 50%;
+    transform: translateX(-50%);
+    background-color: #C9A227;
+    color: white;
+    padding: 3px 10px;
+    border-radius: 12px;
+    font-size: 0.75rem;
+    font-weight: bold;
+}
+
+.result-card {
+    background-color: #FAFAFA;
+    border: 1px solid #E5E7EB;
+    border-radius: 8px;
+    padding: 1.5rem;
+    margin-top: 1rem;
+}
+
+.calculation-table {
+    width: 100%;
+    border-collapse: collapse;
+    margin: 1rem 0;
+}
+
+.calculation-table td {
+    padding: 10px;
+    text-align: right;
+    border-bottom: 1px solid #F0F0F0;
+}
+
+.calculation-table tr:last-child td {
+    border-bottom: none;
+}
+
+.final-price {
+    color: #C9A227 !important;
+    font-size: 1.5rem !important;
+    font-weight: bold !important;
+}
+
+.stButton>button {
+    background-color: #C9A227 !important;
+    color: white !important;
+    border: none !important;
+    border-radius: 6px !important;
+    padding: 0.5rem 1rem !important;
+    font-weight: bold !important;
+    width: 100% !important;
+}
+
+.stRadio>label {
+    font-weight: bold;
+}
+
+.info-message {
+    background-color: #F3F4F6;
+    padding: 0.8rem;
+    border-radius: 6px;
+    color: #6B7280;
+    font-size: 0.9rem;
+    margin-top: 0.5rem;
+}
 </style>
 """, unsafe_allow_html=True)
 
-# ========================================
-# العنوان والترحيب
-# ========================================
-st.markdown("<h1>💎 سيلورا جولد | حاسبة أسعار الذهب</h1>", unsafe_allow_html=True)
-st.markdown("<p style='text-align: center; color: #8B7355; font-size: 16px;'>أسعار محدثة لحظياً وفق السوق العالمي — بالريال السعودي</p>", unsafe_allow_html=True)
+# إعداد الصفحة
+st.set_page_config(page_title="سيلورا جولد", page_icon="💎", layout="centered")
 
-# ========================================
-# عرض السعر الحي ولوحة الأسعار
-# ========================================
-price_24_sar, last_update = get_gold_price()
+# جلب البيانات
+gold_price, updated_at = get_gold_price()
 
-if price_24_sar is None:
-    st.error("⚠️ تعذر جلب السعر العالمي، تحقق من الاتصال بالإنترنت")
-else:
-    # عرض سعر عيار 24 الرئيسي
-    st.metric(
-        label="💰 سعر جرام عيار 24",
-        value=f"{price_24_sar:.2f} ريال سعودي",
-        delta=f"🕐 آخر تحديث: {last_update}"
-    )
+if gold_price:
+    # حساب أسعار الجرام حسب العيار
+    price_per_gram_24 = (gold_price / OUNCE_TO_GRAM) * USD_TO_SAR
+    prices = {}
+    for carat, factor in CARAT_FACTORS.items():
+        prices[carat] = price_per_gram_24 * factor
+
+    # الهيدر
+    st.markdown("<h1 style='text-align: center; margin-bottom: 0.5rem;'>سيلورا جولد</h1>", unsafe_allow_html=True)
+    st.markdown("<p style='text-align: center; color: #6B7280; margin-bottom: 1.5rem;'>حاسبة أسعار الذهب — أسعار محدثة لحظياً بالريال السعودي</p>", unsafe_allow_html=True)
+    st.markdown("<hr>", unsafe_allow_html=True)
+
+    # لوحة الأسعار
+    st.markdown("<h3 style='color: #1A1A1A; margin-bottom: 1rem;'>أسعار الجرام اليوم</h3>", unsafe_allow_html=True)
     
-    st.divider()
-    
-    # ========================================
-    # الميزة 2: لوحة أسعار الأعيرة الحية
-    # ========================================
-    st.markdown("<h3 style='color: #B8860B; text-align: center;'>📊 أسعار الجرام الحية بالريال السعودي</h3>", unsafe_allow_html=True)
-    
-    # قاموس معاملات النقاء للأعيرة (الميزة 1: إضافة عيار 22)
-    KARAT_FACTORS = {
-        "عيار 24": 1.000,
-        "عيار 22": 0.916,
-        "عيار 21": 0.875,
-        "عيار 18": 0.750
-    }
-    
-    # إنشاء 4 أعمدة لعرض أسعار جميع الأعيرة
     col1, col2, col3, col4 = st.columns(4)
     
     with col1:
-        price_24 = price_24_sar * KARAT_FACTORS["عيار 24"]
-        st.metric(label="✨ عيار 24", value=f"{price_24:.2f} ر.س")
+        st.markdown(f"""
+        <div class="price-card">
+            <div style="font-size: 0.85rem; color: #6B7280; margin-bottom: 0.5rem;">عيار 24</div>
+            <div style="font-size: 1.4rem; font-weight: bold; color: #1A1A1A;">{prices[24]:,.2f}</div>
+            <div style="font-size: 0.75rem; color: #9CA3AF;">ريال سعودي</div>
+        </div>
+        """, unsafe_allow_html=True)
     
     with col2:
-        price_22 = price_24_sar * KARAT_FACTORS["عيار 22"]
-        st.metric(label="⭐ عيار 22", value=f"{price_22:.2f} ر.س")
+        st.markdown(f"""
+        <div class="price-card highlighted-card">
+            <div class="popular-badge">الأكثر تداولاً</div>
+            <div style="font-size: 0.85rem; color: #6B7280; margin-bottom: 0.5rem;">عيار 21</div>
+            <div style="font-size: 1.4rem; font-weight: bold; color: #1A1A1A;">{prices[21]:,.2f}</div>
+            <div style="font-size: 0.75rem; color: #9CA3AF;">ريال سعودي</div>
+        </div>
+        """, unsafe_allow_html=True)
     
     with col3:
-        price_21 = price_24_sar * KARAT_FACTORS["عيار 21"]
-        st.metric(label="🏆 عيار 21", value=f"{price_21:.2f} ر.س")
+        st.markdown(f"""
+        <div class="price-card">
+            <div style="font-size: 0.85rem; color: #6B7280; margin-bottom: 0.5rem;">عيار 22</div>
+            <div style="font-size: 1.4rem; font-weight: bold; color: #1A1A1A;">{prices[22]:,.2f}</div>
+            <div style="font-size: 0.75rem; color: #9CA3AF;">ريال سعودي</div>
+        </div>
+        """, unsafe_allow_html=True)
     
     with col4:
-        price_18 = price_24_sar * KARAT_FACTORS["عيار 18"]
-        st.metric(label="💫 عيار 18", value=f"{price_18:.2f} ر.س")
+        st.markdown(f"""
+        <div class="price-card">
+            <div style="font-size: 0.85rem; color: #6B7280; margin-bottom: 0.5rem;">عيار 18</div>
+            <div style="font-size: 1.4rem; font-weight: bold; color: #1A1A1A;">{prices[18]:,.2f}</div>
+            <div style="font-size: 0.75rem; color: #9CA3AF;">ريال سعودي</div>
+        </div>
+        """, unsafe_allow_html=True)
     
-    st.markdown("---")
+    # عرض وقت التحديث
+    update_time_arabic = convert_to_riyadh_time(updated_at)
+    st.markdown(f"<p style='text-align: center; color: #9CA3AF; font-size: 0.85rem; margin: 1.5rem 0;'>آخر تحديث: {update_time_arabic}</p>", unsafe_allow_html=True)
 
-# ========================================
-# نموذج الإدخال (عمودين)
-# ========================================
-col1, col2 = st.columns(2)
+    # فاصل
+    st.markdown("<hr style='margin: 2rem 0;'>", unsafe_allow_html=True)
 
-with col1:
-    weight = st.number_input(
-        "⚖️ وزن القطعة بالجرام",
-        min_value=0.1,
-        value=10.0,
-        step=0.1,
-        help="أدخل وزن القطعة بالجرام"
-    )
-
-    karat_options = ["عيار 24", "عيار 22", "عيار 21", "عيار 18"]
-    selected_karat = st.selectbox(
-        "💍 اختر العيار",
-        options=karat_options,
-        index=0
-    )
-
-with col2:
-    # الميزة 4: خيار نوع العملية (شراء / بيع)
-    operation_type = st.radio(
-        "🔄 نوع العملية",
-        options=["🛒 شراء", "💵 بيع"],
-        horizontal=True,
-        help="في حالة البيع لا تُحتسب المصنعية"
-    )
+    # نموذج الحساب
+    st.markdown("<h3 style='color: #1A1A1A; margin-bottom: 1rem;'>احسب قيمة قطعتك</h3>", unsafe_allow_html=True)
     
-    workmanship = st.number_input(
-        "💎 قيمة المصنعية بالريال السعودي",
-        min_value=0.0,
-        value=50.0,
-        step=1.0,
-        help="أدخل قيمة المصنعية بالريال",
-        disabled=(operation_type == "💵 بيع")
-    )
+    col_input1, col_input2 = st.columns(2)
     
-    # عرض ملاحظة عند اختيار بيع
-    if operation_type == "💵 بيع":
-        st.info("📌 عند البيع لا تُحتسب المصنعية")
+    with col_input1:
+        weight = st.number_input("الوزن (جرام)", min_value=0.1, value=10.0, step=0.1)
+        carat = st.selectbox("العيار", options=[24, 22, 21, 18], format_func=lambda x: f"عيار {x}")
+    
+    with col_input2:
+        operation = st.radio("نوع العملية", options=["شراء", "بيع"], horizontal=True)
+        if operation == "شراء":
+            fee = st.number_input("المصنعية (ريال)", min_value=0.0, value=50.0, step=1.0)
+        else:
+            fee = 0.0
+            st.markdown('<div class="info-message">عند البيع تُحتسب قيمة الذهب الخام فقط دون مصنعية</div>', unsafe_allow_html=True)
 
-# ========================================
-# زر الحساب
-# ========================================
-if st.button("احسب السعر النهائي 💰", type="primary", use_container_width=True):
-
-    if price_24_sar is not None:
-        # تحديد معامل العيار
-        karat_multiplier = KARAT_FACTORS[selected_karat]
-
-        # المعادلة 3: سعر الجرام للعيار المختار
-        price_per_gram_for_karat = price_24_sar * karat_multiplier
-
-        # حساب قيمة الذهب الخام
-        gold_value = weight * price_per_gram_for_karat
+    if st.button("احسب القيمة"):
+        # الحسابات
+        price_per_gram = prices[carat]
+        base_value = weight * price_per_gram
         
-        # الميزة 4: حساب السعر النهائي حسب نوع العملية
-        if operation_type == "🛒 شراء":
-            final_price = gold_value + workmanship
-            operation_note = "شراء (تم إضافة المصنعية)"
-        else:  # بيع
-            final_price = gold_value
-            workmanship = 0.0
-            operation_note = "بيع (لا تُحتسب المصنعية)"
-
-        # ========================================
+        if operation == "شراء":
+            total_value = base_value + fee
+        else:
+            total_value = base_value
+        
         # عرض النتيجة
-        # ========================================
-        st.success(f"**💰 السعر النهائي: {final_price:.2f} ريال سعودي**", icon="✅")
-        st.caption(f"نوع العملية: {operation_note}")
+        st.markdown("<div class='result-card'>", unsafe_allow_html=True)
+        st.markdown("<h4 style='margin-top: 0; color: #1A1A1A;'>فاتورة الحساب</h4>", unsafe_allow_html=True)
+        
+        st.markdown(f"""
+        <table class="calculation-table">
+            <tr><td><strong>العيار:</strong></td><td>عيار {carat}</td></tr>
+            <tr><td><strong>الوزن:</strong></td><td>{weight} جرام</td></tr>
+            <tr><td><strong>سعر الجرام:</strong></td><td>{price_per_gram:,.2f} ريال</td></tr>
+            <tr><td><strong>قيمة الذهب الخام:</strong></td><td>{base_value:,.2f} ريال</td></tr>
+        """, unsafe_allow_html=True)
+        
+        if operation == "شراء":
+            st.markdown(f"""
+            <tr><td><strong>المصنعية:</strong></td><td>{fee:,.2f} ريال</td></tr>
+            <tr><td><strong>السعر النهائي:</strong></td><td class='final-price'>{total_value:,.2f} ريال</td></tr>
+            </table>
+            """, unsafe_allow_html=True)
+        else:
+            st.markdown(f"""
+            <tr><td><strong>السعر النهائي:</strong></td><td class='final-price'>{total_value:,.2f} ريال</td></tr>
+            </table>
+            """, unsafe_allow_html=True)
+        
+        st.markdown("</div>", unsafe_allow_html=True)
 
-        # عرض تفاصيل الفاتورة
-        st.subheader("📋 تفاصيل الفاتورة")
-
-        invoice_data = {
-            "العيار": [selected_karat],
-            "الوزن (جرام)": [f"{weight:.2f}"],
-            "سعر الجرام للعيار (ريال)": [f"{price_per_gram_for_karat:.2f}"],
-            "قيمة الذهب الخام (ريال)": [f"{gold_value:.2f}"],
-            "المصنعية (ريال)": [f"{workmanship:.2f}"],
-            "السعر النهائي (ريال)": [f"{final_price:.2f}"]
-        }
-
-        st.table(invoice_data)
-
-        # عرض إضافي بأعمدة منظمة
-        st.divider()
-        c1, c2, c3 = st.columns(3)
-        with c1:
-            st.info(f"**العيار:**\n{selected_karat}")
-        with c2:
-            st.info(f"**الوزن:**\n{weight:.2f} جرام")
-        with c3:
-            st.info(f"**سعر الجرام:**\n{price_per_gram_for_karat:.2f} ريال")
-
-        c4, c5, c6 = st.columns(3)
-        with c4:
-            st.warning(f"**قيمة الذهب:**\n{gold_value:.2f} ريال")
-        with c5:
-            st.warning(f"**المصنعية:**\n{workmanship:.2f} ريال")
-        with c6:
-            st.success(f"**الإجمالي:**\n{final_price:.2f} ريال")
-    else:
-        st.error("⚠️ لا يمكن الحساب: تعذر جلب السعر العالمي")
-
-# ========================================
-# تذييل الصفحة
-# ========================================
-st.divider()
-st.caption("© 2024 حاسبة سيلورا جولد الذكية - جميع الحقوق محفوظة")
+    # الفوتر
+    st.markdown("<hr style='margin: 2rem 0;'>", unsafe_allow_html=True)
+    st.markdown("<p style='text-align: center; color: #6B7280; font-size: 0.9rem;'>© 2026 سيلورا جولد — جميع الحقوق محفوظة</p>", unsafe_allow_html=True)
+    st.markdown("<p style='text-align: center; color: #9CA3AF; font-size: 0.75rem;'>الأسعار استرشادية وفق السوق العالمي وقد تختلف عن أسعار المتجر</p>", unsafe_allow_html=True)
+else:
+    st.error("تعذر جلب السعر العالمي، تحقق من الاتصال بالإنترنت")
+    st.markdown("<hr>", unsafe_allow_html=True)
+    st.markdown("<p style='text-align: center; color: #9CA3AF; font-size: 0.75rem;'>© 2026 سيلورا جولد — جميع الحقوق محفوظة</p>", unsafe_allow_html=True)
