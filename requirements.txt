@@ -1,3 +1,6 @@
 requests
 streamlit
 streamlit-autorefresh
+Pillow
+arabic_reshaper
+python-bidi
