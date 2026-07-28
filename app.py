@@ -1,4 +1,4 @@
-# app.py — سيلورا جولد | هوية فاتحة متجاوبة RTL
+# app.py — سيلورا جولد | لوحة أسعار نقية (فاتحة، RTL، متجاوبة)
 import streamlit as st
 import theme
 import gold_service as g
@@ -8,108 +8,110 @@ theme.inject()
 
 price_24, upd, errors = g.fetch_gold()
 
+# ===== حسابات مشتقة من سعر جرام 24 (بدون لمس gold_service) =====
+def f2(v):  return "—" if v is None else f"{v:,.2f}"
+def f0(v):  return "—" if v is None else f"{v:,.0f}"
+
+ounce_sar = price_24 * g.OUNCE_TO_GRAM if price_24 else None
+ounce_usd = ounce_sar / g.USD_TO_SAR if ounce_sar else None
+grams     = {k: (g.gram_price(price_24, k) if price_24 else None) for k in g.KARAT_FACTORS}
+grams_usd = {k: (grams[k] / g.USD_TO_SAR if grams[k] else None) for k in grams}
+
 # ===== الترويسة =====
-st.markdown("""
+if price_24:
+    live = f'<span class="live-badge"><span class="dot"></span> مباشر · {upd or "—"}</span>'
+else:
+    live = '<span class="live-badge off"><span class="dot"></span> تعذّر الاتصال</span>'
+st.markdown(f"""
 <div class="brand-row">
   <div class="brand-mark">
     <div class="brand-diamond"></div>
     <div class="brand-name">سيلورا <b>جولد</b></div>
   </div>
-  <div class="brand-tag">SILORA · GOLD DESK</div>
+  <div style="display:flex; align-items:center; gap:.8rem;">
+    {live}
+    <div class="brand-tag">GOLD&nbsp;DESK</div>
+  </div>
 </div>
 """, unsafe_allow_html=True)
 
-# ===== شريط السعر الحي =====
-if price_24:
-    ticks = "".join(
-        f'<span class="tick">{k} <span class="num">{g.gram_price(price_24, k):,.2f}</span> ر.س</span>'
-        for k in g.KARAT_FACTORS
-    )
-    head = '<span class="tick"><span class="live-dot"></span> مباشر الآن</span>'
-    st.markdown(f'<div class="ticker"><div class="ticker-track">{head}{ticks}{ticks}{ticks}</div></div>', unsafe_allow_html=True)
-else:
-    st.markdown('<div class="ticker"><div class="ticker-track"><span class="tick">⚠ تعذّر الاتصال بمصدر الأسعار — راجع لوحة التشخيص بالأسفل</span></div></div>', unsafe_allow_html=True)
+# ===== صف البطاقات (الأونصة + العيار المميز) =====
+def stat(icon, label, value, unit, featured=False, badge=None, delay="0s"):
+    cls = "kcard feature" if featured else "kcard"
+    bdg = f'<span class="crown">{badge}</span>' if badge else ""
+    return (f'<div class="{cls}" style="animation-delay:{delay}">{bdg}'
+            f'<div class="ic">{icon}</div>'
+            f'<div class="k-value">{value}<span class="k-unit">{unit}</span></div>'
+            f'<div class="k-label">{label}</div></div>')
 
-# ===== البطل =====
-if price_24:
-    st.markdown(f"""
-    <div class="hero">
-      <div class="hero-kicker">سعر الذهب العالمي · محوَّل فورياً للريال السعودي</div>
-      <div><span class="hero-price">{price_24:,.2f}</span><span class="hero-unit">ريال / جرام 24</span></div>
-      <div class="hero-sub">آخر تحديث {upd or '—'} بتوقيت الرياض · المصدر <span class="src">gold-api.com</span></div>
-    </div>
-    """, unsafe_allow_html=True)
-else:
-    st.markdown('<div class="hero"><div class="hero-kicker">سيلورا جولد</div><div class="hero-price">لوحة الأسعار</div></div>', unsafe_allow_html=True)
+cards = [
+    stat("$",  "الأونصة · دولار",  f2(ounce_usd), "USD", delay=".04s"),
+    stat("﷼", "الأونصة · ريال",   f0(ounce_sar), "SAR", delay=".10s"),
+    stat("24", "الجرام · عيار 24", f2(grams["عيار 24"]), "ر.س", delay=".16s"),
+    stat("21", "الجرام · عيار 21", f2(grams["عيار 21"]), "ر.س", featured=True, badge="الأكثر تداولاً", delay=".22s"),
+]
+st.markdown(f'<div class="stat-grid">{"".join(cards)}</div>', unsafe_allow_html=True)
 
-# ===== لوحة الأعيرة =====
-st.markdown('<div class="sec-head"><span class="idx">01</span><h2>أسعار الجرام الآن</h2><span class="line"></span></div>', unsafe_allow_html=True)
+# ===== القسم الأوسط: جدول تفصيلي + تفاصيل السوق =====
+st.markdown('<div class="sec-head"><span class="idx">01</span><h2>لوحة الأسعار التفصيلية</h2><span class="line"></span></div>', unsafe_allow_html=True)
 
-if price_24:
-    p = {k: g.gram_price(price_24, k) for k in g.KARAT_FACTORS}
-    st.markdown(f"""
-    <div class="karat-grid">
-      <div class="kcard feature" style="animation-delay:.05s">
-        <span class="crown">الأكثر تداولاً</span>
-        <div class="k-name">عيار 21</div>
-        <div class="k-price">{p['عيار 21']:,.2f}</div>
-        <div class="k-cur">ريال / جرام</div>
-      </div>
-      <div class="kcard" style="animation-delay:.10s"><div class="k-name">عيار 24</div><div class="k-price">{p['عيار 24']:,.2f}</div><div class="k-cur">ريال / جرام</div></div>
-      <div class="kcard" style="animation-delay:.15s"><div class="k-name">عيار 22</div><div class="k-price">{p['عيار 22']:,.2f}</div><div class="k-cur">ريال / جرام</div></div>
-      <div class="kcard" style="animation-delay:.20s"><div class="k-name">عيار 18</div><div class="k-price">{p['عيار 18']:,.2f}</div><div class="k-cur">ريال / جرام</div></div>
-    </div>
-    """, unsafe_allow_html=True)
-else:
-    st.markdown('<div class="kcard" style="grid-column:1/-1">تعذّر عرض الأسعار لحظياً من المصدر.</div>', unsafe_allow_html=True)
+NOTES = {"عيار 24": ("سبائك", "gray"), "عيار 22": ("خليجي", "gray"),
+         "عيار 21": ("الأكثر طلباً", "gold"), "عيار 18": ("مشغولات", "gray")}
+PUR   = {"عيار 24": "99.9%", "عيار 22": "91.6%", "عيار 21": "87.5%", "عيار 18": "75.0%"}
 
-# ===== الحاسبة =====
-st.markdown('<div class="sec-head"><span class="idx">02</span><h2>احسب قيمة قطعتك</h2><span class="line"></span></div>', unsafe_allow_html=True)
+rows = ""
+for i, k in enumerate(g.KARAT_FACTORS):
+    note, ncls = NOTES[k]
+    rows += (f'<tr style="animation-delay:{0.05*i}s">'
+             f'<td class="td-karat">{k}</td>'
+             f'<td class="td-pur">{PUR[k]}</td>'
+             f'<td class="td-num td-sar">{f2(grams[k])}</td>'
+             f'<td class="td-num td-usd">{f2(grams_usd[k])}</td>'
+             f'<td class="td-note"><span class="pill {ncls}">{note}</span></td></tr>')
 
-with st.form("calc_form", clear_on_submit=False):
-    c1, c2 = st.columns(2)
-    with c1:
-        weight = st.number_input("الوزن بالجرام", min_value=0.1, value=10.0, step=0.1)
-        karat = st.selectbox("العيار", list(g.KARAT_FACTORS.keys()), index=2)
-    with c2:
-        op = st.radio("نوع العملية", ["شراء", "بيع"], horizontal=True)
-        if op == "شراء":
-            workmanship = st.number_input("المصنعية بالريال", min_value=0.0, value=50.0, step=10.0)
-        else:
-            workmanship = 0.0
-            st.caption("عند البيع تُحتسب قيمة الذهب الخام فقط دون مصنعية.")
-    submitted = st.form_submit_button("احسب القيمة")
+table_html = f"""
+<div class="panel">
+  <div class="panel-head"><h3>أسعار الجرام والأونصة</h3><span class="hint">ريال · دولار</span></div>
+  <div class="tbl-wrap">
+    <table class="gold">
+      <thead><tr>
+        <th>العيار</th><th>النقاء</th><th>السعر / جرام (ر.س)</th>
+        <th>السعر / جرام ($)</th><th class="th-note">ملاحظة</th>
+      </tr></thead>
+      <tbody>{rows}</tbody>
+    </table>
+  </div>
+</div>
+"""
 
-if submitted and price_24:
-    gp = g.gram_price(price_24, karat)
-    raw = weight * gp
-    total = raw + workmanship
-    rows = f"""
-      <div class="inv-row"><span>العيار</span><span>{karat}</span></div>
-      <div class="inv-row"><span>الوزن</span><span>{weight:.2f} جرام</span></div>
-      <div class="inv-row"><span>سعر الجرام</span><span>{gp:,.2f} ر.س</span></div>
-      <div class="inv-row"><span>قيمة الذهب الخام</span><span>{raw:,.2f} ر.س</span></div>
-    """
-    if op == "شراء":
-        rows += f'<div class="inv-row"><span>المصنعية</span><span>{workmanship:,.2f} ر.س</span></div>'
-    st.markdown(f"""
-    <div class="invoice">
-      {rows}
-      <div class="inv-total"><span class="lbl">السعر النهائي</span><span class="val">{total:,.2f} ر.س</span></div>
-    </div>
-    """, unsafe_allow_html=True)
-elif submitted and not price_24:
-    st.markdown('<div class="diag"><h3>لا يمكن الحساب الآن</h3><div class="d-row"><span>تعذّر جلب السعر من المصدر.</span><span class="fail">—</span></div></div>', unsafe_allow_html=True)
+STAR = ('<svg viewBox="0 0 16 16" fill="currentColor"><path d="M8 1 L9.8 6.2 L15 8 L9.8 9.8 L8 15 L6.2 9.8 L1 8 L6.2 6.2 Z"/></svg>')
+side_items = [
+    ("on",  "مصدر السعر",   "gold-api.com",            "متصل",  "green", ".04s"),
+    ("",    "آخر تحديث",    (upd or "—") + " · الرياض",  "UTC+3", "gray",  ".10s"),
+    ("",    "سعر الصرف",    "دولار → ريال سعودي",       "3.75",  "gray",  ".16s"),
+    ("",    "وزن الأونصة",  "Troy Ounce",               "31.10 جم", "gray", ".22s"),
+]
+srows = ""
+for on, title, sub, pill, pcls, d in side_items:
+    ic_cls = "s-ic on" if on == "on" else "s-ic"
+    srows += (f'<div class="srow" style="animation-delay:{d}">'
+              f'<div class="{ic_cls}">{STAR}</div>'
+              f'<div class="s-txt"><div class="s-title">{title}</div><div class="s-sub">{sub}</div></div>'
+              f'<span class="pill {pcls}">{pill}</span></div>')
 
-# ===== لوحة التشخيص عند الفشل =====
+side_html = f"""
+<div class="panel">
+  <div class="panel-head"><h3>تفاصيل السوق</h3><span class="hint">مباشر</span></div>
+  {srows}
+</div>
+"""
+
+st.markdown(f'<div class="mid-grid">{table_html}{side_html}</div>', unsafe_allow_html=True)
+
+# ===== لوحة التشخيص عند الفشل فقط =====
 if not price_24 and errors:
     items = "".join(f'<div class="d-row"><span>{e}</span><span class="fail">فشل</span></div>' for e in errors)
-    st.markdown(f"""
-    <div class="diag">
-      <h3>لوحة تشخيص الاتصال · gold-api.com</h3>
-      {items}
-    </div>
-    """, unsafe_allow_html=True)
+    st.markdown(f'<div class="diag"><h3>تعذّر جلب السعر من gold-api.com</h3>{items}</div>', unsafe_allow_html=True)
 
 # ===== الفوتر =====
 st.markdown("""
