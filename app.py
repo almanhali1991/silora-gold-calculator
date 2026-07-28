@@ -1,14 +1,14 @@
-# app.py — سيلورا جولد | لوحة أسعار نقية (عاجية دافئة، RTL، متجاوبة، تحديث 60ث)
+# app.py — سيلورا جولد | لوحة أسعار أحادية (أبيض/فحمي، RTL قسري، متجاوبة، تحديث 60ث)
 import streamlit as st
 from urllib.parse import quote
 import theme
 import gold_service as g
 
-# ===== أيقونة تبويب المتصفح مطابقة للشعار (دائرة كريمية + ماسة ذهبية) =====
+# ===== favicon مطابق للشعار (مربع فحمي + ماسة بيضاء) =====
 _FAV = ('<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 32 32">'
-        '<circle cx="16" cy="16" r="15" fill="#F3E7C4" stroke="#C9A227" stroke-width="1.5"/>'
-        '<path d="M10 13h12l2.5 3.5L16 25 7.5 16.5Z" fill="none" stroke="#8A6D1F" stroke-width="1.7" stroke-linejoin="round"/>'
-        '<path d="M7.5 16.5h17M13 13l-3 3.5 6 8.5 6-8.5-3-3.5" fill="none" stroke="#8A6D1F" stroke-width="1.1" stroke-linejoin="round"/>'
+        '<rect width="32" height="32" rx="8" fill="#18181B"/>'
+        '<path d="M10 13h12l2.5 3.5L16 25 7.5 16.5Z" fill="none" stroke="#FFFFFF" stroke-width="1.8" stroke-linejoin="round"/>'
+        '<path d="M7.5 16.5h17M13 13l-3 3.5 6 8.5 6-8.5-3-3.5" fill="none" stroke="#FFFFFF" stroke-width="1.1" stroke-linejoin="round"/>'
         '</svg>')
 ICON_SVG = "data:image/svg+xml," + quote(_FAV)
 
@@ -16,6 +16,9 @@ LOGO = ('<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width
         'stroke-linecap="round" stroke-linejoin="round">'
         '<path d="M6 5h12l3 4.5-9 10.5L3 9.5Z"/>'
         '<path d="M3 9.5h18M9 5 6 9.5l6 10.5 6-10.5L15 5"/></svg>')
+GEM = ('<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" '
+       'stroke-linecap="round" stroke-linejoin="round">'
+       '<path d="M6 5h12l3 4.5-9 10.5L3 9.5Z"/><path d="M3 9.5h18M9 5 6 9.5l6 10.5 6-10.5L15 5"/></svg>')
 
 st.set_page_config(page_title="سيلورا جولد", page_icon=ICON_SVG, layout="wide", initial_sidebar_state="collapsed")
 theme.inject()
@@ -53,7 +56,7 @@ st.markdown(f"""
 </div>
 """, unsafe_allow_html=True)
 
-# ===== الأونصة: الكبير = دولار، الصغير = ريال =====
+# ===== الأونصة: الكبير دولار، الصغير ريال =====
 st.markdown('<div class="sec-head"><span class="idx">01</span><h2>سعر الأونصة العالمي</h2><span class="line"></span></div>', unsafe_allow_html=True)
 if price_24:
     st.markdown(f"""
@@ -69,13 +72,14 @@ else:
                 '<div class="hero-big" style="font-size:2.4rem">لوحة الأسعار</div>'
                 '<div class="hero-meta">تعذّر جلب السعر لحظياً — راجع لوحة التشخيص بالأسفل.</div></div>', unsafe_allow_html=True)
 
-# ===== الأعيرة: ريال كبير + دولار صغير (ترتيب ثابت) =====
+# ===== الأعيرة: ريال كبير فوق، دولار صغير تحت (ترتيب ثابت) =====
 st.markdown('<div class="sec-head"><span class="idx">02</span><h2>أسعار الجرام</h2><span class="line"></span></div>', unsafe_allow_html=True)
 
 def kcard(label, sar, usd, featured=False, badge=None, delay="0s"):
     cls = "kcard feature" if featured else "kcard"
     bdg = f'<span class="crown">{badge}</span>' if badge else ""
     return (f'<div class="{cls}" style="animation-delay:{delay}">{bdg}'
+            f'<div class="ic">{GEM}</div>'
             f'<div class="k-label">{label}</div>'
             f'<div class="k-value">{f2(sar)}<span class="k-cur">ر.س</span></div>'
             f'<div class="k-usd">{f2(usd)}<span class="u">USD</span></div></div>')
@@ -90,21 +94,6 @@ if price_24:
     st.markdown(f'<div class="stat-grid">{cards}</div>', unsafe_allow_html=True)
 else:
     st.markdown('<div class="stat-grid"><div class="kcard" style="grid-column:1/-1">تعذّر عرض الأسعار لحظياً من المصدر.</div></div>', unsafe_allow_html=True)
-
-# ===== جدول ملخّص: 3 أعمدة فقط (بلا كلمات إضافية) =====
-st.markdown('<div class="sec-head"><span class="idx">03</span><h2>ملخّص الأسعار</h2><span class="line"></span></div>', unsafe_allow_html=True)
-rows = ""
-for i, k in enumerate(g.KARAT_FACTORS):
-    rows += (f'<tr style="animation-delay:{0.05*i}s">'
-             f'<td class="td-karat">{k}</td>'
-             f'<td class="td-num td-sar">{f2(GRAM[k])}</td>'
-             f'<td class="td-num td-usd">{f2(GRAM_USD[k])}</td></tr>')
-st.markdown(f"""
-<div class="panel"><div class="tbl-wrap"><table class="gold">
-  <thead><tr><th>العيار</th><th>ريال / جرام</th><th>دولار / جرام</th></tr></thead>
-  <tbody>{rows}</tbody>
-</table></div></div>
-""", unsafe_allow_html=True)
 
 # ===== التشخيص عند الفشل فقط =====
 if not price_24 and errors:
