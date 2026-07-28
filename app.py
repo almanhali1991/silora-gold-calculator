@@ -1,4 +1,4 @@
-# app.py — سيلورا جولد | لوحة بيضاء + زر تصدير قصة 9:16 (بلا معاينة، بلا html2canvas)
+# app.py — سيلورا جولد | لوحة بيضاء + زر تصدير قصة 9:16 (بلا معاينة، بلا التقاط)
 import time
 import streamlit as st
 from urllib.parse import quote
@@ -39,7 +39,6 @@ OUNCE_USD = OUNCE_SAR / g.USD_TO_SAR if OUNCE_SAR else None
 GRAM      = {k: (g.gram_price(price_24, k) if price_24 else None) for k in g.KARAT_FACTORS}
 GRAM_USD  = {k: (GRAM[k] / g.USD_TO_SAR if GRAM[k] else None) for k in GRAM}
 
-# الترويسة
 if price_24:
     live = '<span class="live-badge"><span class="dot"></span> مباشر الآن</span>'
 else:
@@ -55,7 +54,6 @@ st.markdown(f"""
 </div>
 """, unsafe_allow_html=True)
 
-# الأونصة
 st.markdown('<div class="sec-head"><span class="idx">01</span><h2>سعر الأونصة العالمي</h2><span class="line"></span></div>', unsafe_allow_html=True)
 if price_24:
     st.markdown(f"""
@@ -71,7 +69,6 @@ else:
                 '<div class="hero-big" style="font-size:2.4rem">لوحة الأسعار</div>'
                 '<div class="hero-meta">تعذّر جلب السعر لحظياً — راجع لوحة التشخيص بالأسفل.</div></div>', unsafe_allow_html=True)
 
-# الأعيرة
 st.markdown('<div class="sec-head"><span class="idx">02</span><h2>أسعار الجرام</h2><span class="line"></span></div>', unsafe_allow_html=True)
 def kcard(label, sar, usd, featured=False, delay="0s"):
     cls = "kcard feature" if featured else "kcard"
@@ -91,33 +88,30 @@ if price_24:
 else:
     st.markdown('<div class="stat-grid"><div class="kcard" style="grid-column:1/-1">تعذّر عرض الأسعار لحظياً من المصدر.</div></div>', unsafe_allow_html=True)
 
-# تصدير القصة — زر واحد فقط، بلا معاينة
 if price_24:
     st.markdown('<div class="sec-head"><span class="idx">03</span><h2>تصدير القصة</h2><span class="line"></span></div>', unsafe_allow_html=True)
     st.markdown("""<style>
     [data-testid="stDownloadButton"] button{
       background:#18181B !important; color:#fff !important; border:none !important;
       border-radius:14px !important; font-family:'Cairo',sans-serif !important; font-weight:700 !important;
-      width:100% !important; padding:.9rem 1rem !important; font-size:1rem !important;
+      width:100% !important; padding:.95rem 1rem !important; font-size:1rem !important;
       transition:transform .2s, box-shadow .2s !important;}
     [data-testid="stDownloadButton"] button:hover{transform:translateY(-2px);
       box-shadow:0 14px 30px -12px rgba(24,24,27,.5) !important;}
     </style>""", unsafe_allow_html=True)
     try:
-        png = SI.build(price_24, upd)
+        png = SI.build(price_24)
         st.download_button(label="تصدير صورة القصة 9:16", data=png,
                            file_name=f"silora-gold-{int(time.time())}.png",
                            mime="image/png", use_container_width=True, key="dl_story")
-        st.caption("صورة مبنية بدقة 1080×1920 — جاهزة للنشر على ستوري إنستغرام وسناب وواتساب.")
+        st.caption("صورة مبنية بدقة 1080×1920 — جاهزة لستوري إنستغرام وسناب وواتساب.")
     except Exception as e:
         st.error(f"تعذّر تجهيز صورة التصدير: {type(e).__name__}: {e}")
 
-# التشخيص عند الفشل فقط
 if not price_24 and errors:
     items = "".join(f'<div class="d-row"><span>{e}</span><span class="fail">فشل</span></div>' for e in errors)
     st.markdown(f'<div class="diag"><h3>تعذّر جلب السعر من gold-api.com</h3>{items}</div>', unsafe_allow_html=True)
 
-# الفوتر
 st.markdown("""
 <div class="foot">
   سيلورا جولد <span class="sep">◆</span> أسعار استرشادية وفق السوق العالمي وقد تختلف عن أسعار المتجر
