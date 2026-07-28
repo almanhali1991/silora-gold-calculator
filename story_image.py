@@ -103,7 +103,8 @@ def build(price_24, upd):
     name_right = lx - 30
     rtext(d, ar("سيلورا جولد"), name_right, ly+6, F('bold', 62), INK)
     rtext(d, "GOLD DESK", name_right, ly+80, F('bold', 24), MUTED)
-    f_live = F('bold', 26); live_txt = ar("مباشر"); lw = _w(d, live_txt, f_live); badge_w = lw + 70; bx, by = M, ly+30
+    f_live = F('bold', 26); live_txt = ar("مباشر")
+    lw = _w(d, live_txt, f_live); badge_w = lw + 70; bx, by = M, ly+30
     d.rounded_rectangle([bx, by, bx+badge_w, by+52], radius=26, fill=LINE2, outline=LINE, width=2)
     d.ellipse([bx+22, by+18, bx+38, by+34], fill=(22,163,74))
     ltext(d, live_txt, bx+50, by+8, f_live, INK2)
