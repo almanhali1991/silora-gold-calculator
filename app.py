@@ -1,10 +1,10 @@
-# app.py — سيلورا جولد | لوحة أسعار أحادية (أبيض/فحمي، RTL قسري، متجاوبة، تحديث 60ث)
+# app.py — سيلورا جولد | لوحة بيضاء نقية (RTL قسري، متجاوبة، تحديث 60ث، بلا شارة)
 import streamlit as st
 from urllib.parse import quote
 import theme
 import gold_service as g
 
-# ===== favicon مطابق للشعار (مربع فحمي + ماسة بيضاء) =====
+# favicon مطابق للشعار
 _FAV = ('<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 32 32">'
         '<rect width="32" height="32" rx="8" fill="#18181B"/>'
         '<path d="M10 13h12l2.5 3.5L16 25 7.5 16.5Z" fill="none" stroke="#FFFFFF" stroke-width="1.8" stroke-linejoin="round"/>'
@@ -23,7 +23,6 @@ GEM = ('<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width=
 st.set_page_config(page_title="سيلورا جولد", page_icon=ICON_SVG, layout="wide", initial_sidebar_state="collapsed")
 theme.inject()
 
-# ===== تحديث تلقائي كل 60 ثانية =====
 try:
     from streamlit_autorefresh import st_autorefresh
     st_autorefresh(interval=60 * 1000, key="silora_gold_refresh")
@@ -40,7 +39,7 @@ OUNCE_USD = OUNCE_SAR / g.USD_TO_SAR if OUNCE_SAR else None
 GRAM      = {k: (g.gram_price(price_24, k) if price_24 else None) for k in g.KARAT_FACTORS}
 GRAM_USD  = {k: (GRAM[k] / g.USD_TO_SAR if GRAM[k] else None) for k in GRAM}
 
-# ===== الترويسة =====
+# الترويسة
 if price_24:
     live = '<span class="live-badge"><span class="dot"></span> مباشر الآن</span>'
 else:
@@ -56,7 +55,7 @@ st.markdown(f"""
 </div>
 """, unsafe_allow_html=True)
 
-# ===== الأونصة: الكبير دولار، الصغير ريال =====
+# الأونصة (نص موسَّط، كبير دولار، صغير ريال)
 st.markdown('<div class="sec-head"><span class="idx">01</span><h2>سعر الأونصة العالمي</h2><span class="line"></span></div>', unsafe_allow_html=True)
 if price_24:
     st.markdown(f"""
@@ -72,13 +71,12 @@ else:
                 '<div class="hero-big" style="font-size:2.4rem">لوحة الأسعار</div>'
                 '<div class="hero-meta">تعذّر جلب السعر لحظياً — راجع لوحة التشخيص بالأسفل.</div></div>', unsafe_allow_html=True)
 
-# ===== الأعيرة: ريال كبير فوق، دولار صغير تحت (ترتيب ثابت) =====
+# الأعيرة (ريال كبير فوق، دولار صغير تحت — بلا شارة)
 st.markdown('<div class="sec-head"><span class="idx">02</span><h2>أسعار الجرام</h2><span class="line"></span></div>', unsafe_allow_html=True)
 
-def kcard(label, sar, usd, featured=False, badge=None, delay="0s"):
+def kcard(label, sar, usd, featured=False, delay="0s"):
     cls = "kcard feature" if featured else "kcard"
-    bdg = f'<span class="crown">{badge}</span>' if badge else ""
-    return (f'<div class="{cls}" style="animation-delay:{delay}">{bdg}'
+    return (f'<div class="{cls}" style="animation-delay:{delay}">'
             f'<div class="ic">{GEM}</div>'
             f'<div class="k-label">{label}</div>'
             f'<div class="k-value">{f2(sar)}<span class="k-cur">ر.س</span></div>'
@@ -86,7 +84,7 @@ def kcard(label, sar, usd, featured=False, badge=None, delay="0s"):
 
 if price_24:
     cards = "".join([
-        kcard("عيار 24", GRAM["عيار 24"], GRAM_USD["عيار 24"], featured=True, badge="الأكثر تداولاً", delay=".04s"),
+        kcard("عيار 24", GRAM["عيار 24"], GRAM_USD["عيار 24"], featured=True, delay=".04s"),
         kcard("عيار 22", GRAM["عيار 22"], GRAM_USD["عيار 22"], delay=".10s"),
         kcard("عيار 21", GRAM["عيار 21"], GRAM_USD["عيار 21"], delay=".16s"),
         kcard("عيار 18", GRAM["عيار 18"], GRAM_USD["عيار 18"], delay=".22s"),
@@ -95,12 +93,12 @@ if price_24:
 else:
     st.markdown('<div class="stat-grid"><div class="kcard" style="grid-column:1/-1">تعذّر عرض الأسعار لحظياً من المصدر.</div></div>', unsafe_allow_html=True)
 
-# ===== التشخيص عند الفشل فقط =====
+# التشخيص عند الفشل فقط
 if not price_24 and errors:
     items = "".join(f'<div class="d-row"><span>{e}</span><span class="fail">فشل</span></div>' for e in errors)
     st.markdown(f'<div class="diag"><h3>تعذّر جلب السعر من gold-api.com</h3>{items}</div>', unsafe_allow_html=True)
 
-# ===== الفوتر =====
+# الفوتر
 st.markdown("""
 <div class="foot">
   سيلورا جولد <span class="sep">◆</span> أسعار استرشادية وفق السوق العالمي وقد تختلف عن أسعار المتجر
